@@ -22,8 +22,14 @@ export async function POST(request: Request) {
     return new Response('Invalid signature', { status: 400 });
   }
 
-  const { events } = await request.json();
-  const event = events[0];
+// 黑客松救命神招：直接用 any 跳過 TypeScript 檢查（現場最常用）
+const payload: any = await request.json();
+const events = payload.events || [];
+const event = events[0];
+
+if (!event) {
+  return new Response('No event', { status: 200 });
+}
 
   if (event.type === 'postback') {
     const data = event.postback.data;
