@@ -1,7 +1,7 @@
 // app/api/webhook/route.js
 import crypto from 'crypto';
 
-// 最強驗簽函式（黑客松救命版）
+// 驗簽函式
 function validateSignature(body, channelSecret, signature) {
   if (!signature) return false;
   const hash = crypto
@@ -11,21 +11,25 @@ function validateSignature(body, channelSecret, signature) {
   return crypto.timingSafeEqual(Buffer.from(hash), Buffer.from(signature));
 }
 
-// 主程式
+// LINE 會用 POST 打這個 endpoint
 export async function POST(req) {
-  const body = await req.text();                                   // 關鍵！一定要用 text()
+  const body = await req.text(); // 一定要用 text()
   const signature = req.headers.get('x-line-signature') || '';
 
-  // 驗簽失敗直接 400
+  // 驗簽失敗 → 回 400
   if (!validateSignature(body, process.env.LINE_CHANNEL_SECRET, signature)) {
     return new Response('Invalid signature', { status: 400 });
   }
 
-  // 這裡先不處理任何邏輯，只回 200（先讓 Verify 過最重要）
-  // 等 Verify 綠燈後你再慢慢加 postback、訂餐、Turso 之類的
+  // 先不處理任何邏輯，只要能回 200 讓 Verify 過關
   return new Response('OK', { status: 200 });
 }
 
-// 下面這兩行絕對不能少！！
-export const runtime = 'edge';
+// 可選：給自己測試用，GET /api/webhook 會回 200 OK
+export async function GET() {
+  return new Response('OK', { status: 200 });
+}
+
+// Next.js 設定
+export const runtime = 'nodejs';        // 用 Node runtime，比較好用 crypto
 export const dynamic = 'force-dynamic';
