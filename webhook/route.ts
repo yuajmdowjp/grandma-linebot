@@ -62,3 +62,4 @@ if (!event) {
 }
 
 export const runtime = 'edge';  // 超重要！一定要加這行
+export const dynamic = 'force-dynamic'; // 建議也加，避免快取
